@@ -7,12 +7,7 @@ import http.client
 import numpy as np
 
 from typing import Collection, Any
-
-from tensorboard.plugins.pr_curve.summary import raw_data_op
-
-from implementation import sampler, \
-    evaluator, evaluator_accelerate, \
-    funsearch, config
+from implementation import sampler
 
 
 server_url = 'api.bltcy.ai'
@@ -24,16 +19,12 @@ api_key = 'Bearer sk-OmRJlpj2aI4A3GLvA4Bd841fCfB04b3e9eF6D0D9984f1719'
 
 
 add_prompt = (
-    "Improve the scheduling heuristic to minimize makespan.",
-    "You can change how jobs are ordered or inserted,",
-    "Be creative. Think beyond NEH logic.",
-    "Please only generate neh_heuristic(processing_times: np.ndarray) function",
+    "Improve the scheduling heuristic to minimize makespan."
+    "You can change how jobs are ordered or inserted,"
+    "Be creative. Think beyond NEH logic."
+    "Please only generate neh_heuristic(processing_times: np.ndarray) function"
     "Use loops, conditionals, or clustering ideas. Only return valid Python code."
 )
-
-
-with open('flowshop_spec.py', 'r') as f:
-    specification = f.read()
 
 
 def _trim_preface_of_body(sample: str) -> str:
@@ -57,7 +48,7 @@ def _trim_preface_of_body(sample: str) -> str:
 
 
 class LLMAPI(sampler.LLM):
-    def __int__(
+    def __init__(
             self,
             samples_per_prompt: int,
             trim=True
@@ -114,6 +105,10 @@ class LLMAPI(sampler.LLM):
             except Exception:
                 time.sleep(2)
                 continue
+
+
+from implementation import evaluator
+from implementation import evaluator_accelerate
 
 
 class Sandbox(evaluator.Sandbox):
@@ -219,7 +214,7 @@ def load_datasets(dataset_folder):
                     jobs = raw_data[:, 1::2]
 
                     if jobs.shape != (n_jobs, n_machines):
-                        print(f" Warning: Mismatch in expected dimensions for {file_path}, skipping dataset.")
+                        print(f"Warning: Mismatch in expected dimensions for {file_path}, skipping dataset.")
                         continue
 
                     datasets[file] = jobs
@@ -227,24 +222,32 @@ def load_datasets(dataset_folder):
     return datasets
 
 
+from implementation import funsearch
+from implementation import config
+
+
 if __name__ == '__main__':
     data_path = '../data/'
-    flowshop_datasets = {}
+    datasets = {}
 
     for subfolder in ['carlier', 'heller', 'reeves']:
-        flowshop_datasets.update(load_datasets(os.path.join(data_path, subfolder)))
+        datasets.update(load_datasets(os.path.join(data_path, subfolder)))
 
-    print(f'Successfully loaded {len(flowshop_datasets)} datasets.')
+    print(f'Successfully loaded {len(datasets)} datasets.')
 
     instances = {
-        'heller1.txt': flowshop_datasets['heller1.txt'],
-        'heller2.txt': flowshop_datasets['heller2.txt'],
-        'reeves1.txt': flowshop_datasets['reeves1.txt']
+        'heller1.txt': datasets['heller1.txt'],
+        'heller2.txt': datasets['heller2.txt'],
+        'reeves1.txt': datasets['reeves1.txt']
     }
 
     class_config = config.ClassConfig(llm_class=LLMAPI, sandbox_class=Sandbox)
     config = config.Config(samples_per_prompt=4, evaluate_timeout_seconds=30)
     global_max_sample_num = 50
+
+    with open('flowshop_spec.py', 'r') as f:
+        specification = f.read()
+
     funsearch.main(
         specification=specification,
         inputs=instances,
@@ -252,5 +255,5 @@ if __name__ == '__main__':
         max_sample_nums=global_max_sample_num,
         class_config=class_config,
         verbose=True,
-        log_dir='./logs/evaluator.log'
+        log_dir='./logs/evaluator_log'
     )
