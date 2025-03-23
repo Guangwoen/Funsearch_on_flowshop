@@ -8,11 +8,16 @@ base_prompt = (
 )
 
 
-# Simple modification made on base prompt
-flowshop_base_prompt = (
+# Simple modification made on base prompt for NEH evolvement
+flowshop_base_prompt_neh = (
     "Improve the scheduling heuristic to minimize makespan."
     "You can change how jobs are ordered or inserted,"
     "Be creative. Think beyond NEH logic."
     "Please only generate neh_heuristic(processing_times: np.ndarray) function"
     "Use loops, conditionals, or clustering ideas. Only return valid Python code."
+)
+
+
+# Simple modificaiton made on base prompt for priority method
+flowshop_base_prompt_priority = (
 )

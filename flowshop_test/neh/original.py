@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils import calc_makespan
+from flowshop_test.utils import calc_makespan
 
 
 def neh(processing_times: np.ndarray) -> list[int]:

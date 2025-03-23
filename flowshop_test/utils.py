@@ -116,5 +116,5 @@ def extract_function_from_json(json_file: str, output_file: str):
 
 if __name__ == '__main__':
     os.chdir('/Users/cuiguangyuan/Documents/CityU/SemesterB/Artificial Intelligence/project/Funsearch_on_flowshop')
-    extract_function_from_json('flowshop/logs/evaluator_log/samples/samples_21.json', 'flowshop-test/neh/evolved.py')
+    extract_function_from_json('flowshop/logs/evaluator_log/flowshop_spec_priority/samples/samples_17.json', 'flowshop_test/priority/e.py')
 

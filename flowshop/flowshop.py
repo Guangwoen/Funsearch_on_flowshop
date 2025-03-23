@@ -7,18 +7,17 @@ import http.client
 from typing import Collection, Any
 from implementation import sampler
 
-from prompts.prompts import flowshop_base_prompt
+from prompts.prompts import *
 
+
+api_key = 'Bearer sk-OmRJlpj2aI4A3GLvA4Bd841fCfB04b3e9eF6D0D9984f1719'
 
 server_url = 'api.bltcy.ai'
 max_tokens = 1024
 model_name = 'chatgpt-4o-latest'
 
-
-api_key = 'Bearer sk-OmRJlpj2aI4A3GLvA4Bd841fCfB04b3e9eF6D0D9984f1719'
-
-
-add_prompt = flowshop_base_prompt
+spec_file = 'flowshop_spec_priority.py'
+add_prompt = base_prompt
 
 
 def _trim_preface_of_body(sample: str) -> str:
@@ -192,7 +191,7 @@ class Sandbox(evaluator.Sandbox):
             result_queue.put((None, False))
 
 
-from utils import load_datasets
+from flowshop_test.utils import load_datasets
 
 from implementation import funsearch
 from implementation import config
@@ -208,16 +207,20 @@ if __name__ == '__main__':
     print(f'Successfully loaded {len(datasets)} datasets.')
 
     instances = {
+        'carlier1.txt': datasets['carlier1.txt'],
+        'carlier2.txt': datasets['carlier2.txt'],
         'heller1.txt': datasets['heller1.txt'],
         'heller2.txt': datasets['heller2.txt'],
-        'reeves1.txt': datasets['reeves1.txt']
+        'reeves1.txt': datasets['reeves1.txt'],
+        'reeves2.txt': datasets['reeves2.txt'],
+        'reeves3.txt': datasets['reeves3.txt']
     }
 
     class_config = config.ClassConfig(llm_class=LLMAPI, sandbox_class=Sandbox)
     config = config.Config(samples_per_prompt=4, evaluate_timeout_seconds=30)
     global_max_sample_num = 50
 
-    with open('flowshop_spec_neh.py', 'r') as f:
+    with open(spec_file, 'r') as f:
         specification = f.read()
 
     funsearch.main(
@@ -227,5 +230,5 @@ if __name__ == '__main__':
         max_sample_nums=global_max_sample_num,
         class_config=class_config,
         verbose=True,
-        log_dir='./logs/evaluator_log'
+        log_dir=f'./logs/evaluator_log/{spec_file.split('.')[0]}'
     )

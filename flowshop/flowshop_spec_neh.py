@@ -1,8 +1,6 @@
 from typing import List
 import numpy as np
 
-import numpy as np
-
 
 def compute_makespan(schedule: list[int], processing_times: np.ndarray) -> int:
     """

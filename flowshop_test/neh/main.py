@@ -1,14 +1,14 @@
 import numpy as np
 
-from utils import *
+from flowshop_test.utils import *
 from original import neh
 from evolved import evolved_neh
 
 
 def main(use_evolved=False):
 
-    filename = 'carlier1.txt'
-    subdir = 'carlier'
+    filename = 'reeves1.txt'
+    subdir = 'reeves'
     fs_data = load_datasets(f'/Users/cuiguangyuan/Documents/CityU/SemesterB/Artificial Intelligence/project/Funsearch_on_flowshop/data/{subdir}')[filename]
     fs_data = np.array(fs_data)
 
@@ -25,7 +25,7 @@ def main(use_evolved=False):
 
 
 if __name__ == '__main__':
-    schedule, final_makespan = main(True)
+    schedule, final_makespan = main()
 
     print(f"Best schedule: {schedule}")
     print(f"Best makespan: {final_makespan}")
