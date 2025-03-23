@@ -4,10 +4,10 @@ import json
 import multiprocessing
 import http.client
 
-import numpy as np
-
 from typing import Collection, Any
 from implementation import sampler
+
+from prompts.prompts import flowshop_base_prompt
 
 
 server_url = 'api.bltcy.ai'
@@ -18,13 +18,7 @@ model_name = 'chatgpt-4o-latest'
 api_key = 'Bearer sk-OmRJlpj2aI4A3GLvA4Bd841fCfB04b3e9eF6D0D9984f1719'
 
 
-add_prompt = (
-    "Improve the scheduling heuristic to minimize makespan."
-    "You can change how jobs are ordered or inserted,"
-    "Be creative. Think beyond NEH logic."
-    "Please only generate neh_heuristic(processing_times: np.ndarray) function"
-    "Use loops, conditionals, or clustering ideas. Only return valid Python code."
-)
+add_prompt = flowshop_base_prompt
 
 
 def _trim_preface_of_body(sample: str) -> str:
@@ -198,36 +192,14 @@ class Sandbox(evaluator.Sandbox):
             result_queue.put((None, False))
 
 
-def load_datasets(dataset_folder):
-    datasets = {}
-
-    for root, _, files in os.walk(dataset_folder):
-        for file in files:
-            if file.endswith('.txt'):
-                file_path = os.path.join(root, file)
-
-                with open(file_path, 'r') as f:
-                    first_line = f.readline().strip().split()
-                    n_jobs, n_machines = int(first_line[0]), int(first_line[1])
-
-                    raw_data = np.loadtxt(f)
-                    jobs = raw_data[:, 1::2]
-
-                    if jobs.shape != (n_jobs, n_machines):
-                        print(f"Warning: Mismatch in expected dimensions for {file_path}, skipping dataset.")
-                        continue
-
-                    datasets[file] = jobs
-
-    return datasets
-
+from utils import load_datasets
 
 from implementation import funsearch
 from implementation import config
 
 
 if __name__ == '__main__':
-    data_path = '../data/'
+    data_path = '/Users/cuiguangyuan/Documents/CityU/SemesterB/Artificial Intelligence/project/Funsearch_on_flowshop/data'
     datasets = {}
 
     for subfolder in ['carlier', 'heller', 'reeves']:
@@ -245,7 +217,7 @@ if __name__ == '__main__':
     config = config.Config(samples_per_prompt=4, evaluate_timeout_seconds=30)
     global_max_sample_num = 50
 
-    with open('flowshop_spec.py', 'r') as f:
+    with open('flowshop_spec_neh.py', 'r') as f:
         specification = f.read()
 
     funsearch.main(
