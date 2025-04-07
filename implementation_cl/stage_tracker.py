@@ -1,4 +1,7 @@
-from typing import Any, Tuple, Sequence, Dict
+# Implemented by CGY
+# Wrapper for the main process
+
+from typing import Dict
 
 from implementation_cl import evaluator
 from implementation_cl import programs_database
@@ -11,6 +14,11 @@ import os
 
 
 class StageTracker:
+    """
+    Responsible for tracking each stage.
+
+    CGY: Wrapping the main process of FunSearch to run continuously.
+    """
 
     def __init__(
             self,
@@ -32,6 +40,21 @@ class StageTracker:
             inputs: Dict,
             **kwargs
     ) -> tuple[bool, code_manipulation.Function]:
+        """
+        Main process of FunSearch.
+
+        CGY: FunSearch main.
+
+        Args:
+            function_to_evolve:     the name of the evolve function
+            function_to_run:        the name the run function
+            template:               the specification
+            inputs:                 input data for evaluation
+
+        Returns:
+            a tuple contains whether current run has passed
+            the current stage and the final evolved function.
+        """
 
         print(f"=====Stage {self._cur_stage} Started=====")
 
@@ -67,9 +90,9 @@ class StageTracker:
 
         print(f"=====Stage-{self._cur_stage} Baseline Score: {baseline_score}=====")
 
-        assert baseline_score is not None
+        assert baseline_score is not None  # CGY: baseline score is compulsory
 
-        sampler.Sampler.initialize_global_sample_nums()
+        sampler.Sampler.initialize_global_sample_nums()  # CGY: reset the class variable for the coming run
 
         # Set global max sample nums.
         samplers = [
@@ -88,6 +111,7 @@ class StageTracker:
 
         print(f"=====Stage {self._cur_stage} Ended=====")
 
+        # CGY: best score and function at current stage
         best_score = profiler.get_cur_best_score()
         best_func = profiler.get_cur_best_function()
 

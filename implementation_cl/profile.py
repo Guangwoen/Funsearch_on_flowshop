@@ -4,12 +4,11 @@
 from __future__ import annotations
 
 import os.path
-from typing import List, Dict
+from typing import Dict
 import logging
 import json
 from implementation_cl import code_manipulation
 from torch.utils.tensorboard import SummaryWriter
-import threading
 
 
 class Profiler:
@@ -147,7 +146,9 @@ class Profiler:
         # self._each_sample_tot_evaluate_time.append(self._tot_evaluate_time)
 
     def get_cur_best_function(self) -> code_manipulation.Function:
+        """CGY: Get the best function that is recorded by the class."""
         return self._all_sampled_functions[self._cur_best_program_sample_order]
 
     def get_cur_best_score(self) -> float:
+        """CGY: Get the best score that is recorded by the class."""
         return self._cur_best_program_score

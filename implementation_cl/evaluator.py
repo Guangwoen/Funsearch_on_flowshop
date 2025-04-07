@@ -194,6 +194,9 @@ class Evaluator:
             sample: RZ: please note that the sample must be preprocessed--only have function body,
                     no description before it (except annotations), no symbols before it.
                     Or the "_sample_to_program" function will fail!!!
+
+        Returns:
+            best score for this analyse
         """
         # RZ: 'new_function' refers to the evolved function ('def' statement + function body)
         # RZ: 'program' is the template code + new_function
@@ -257,7 +260,7 @@ class Evaluator:
                 evaluate_time=evaluate_time
             )
 
-            return avg_score
+            return avg_score  # CGY: returns evaluation score
 
         self._log("No valid scores. Not registered.")
         profiler: profile.Profiler = kwargs.get('profiler', None)

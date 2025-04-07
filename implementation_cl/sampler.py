@@ -118,6 +118,7 @@ class Sampler:
 
     @classmethod
     def initialize_global_sample_nums(cls, num: int = 1):
+        """CGY: Reinitialize the class global variable"""
         cls._global_samples_nums = num
 
     def _get_global_sample_nums(self) -> int:

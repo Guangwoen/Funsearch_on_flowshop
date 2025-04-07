@@ -93,6 +93,15 @@ class Program:
         return program
 
     def get_decorated_program_str(self, func_to_evolve, func_to_run) -> str:
+        """
+        Get string of this program.
+
+        CGY: this is needed because basic __str__ method does not support inserting decorations.
+
+        Args:
+            func_to_evolve:     the name of the evolve function
+            func_to_run:        the name of the run function
+        """
         program = f'{self.preface}\n' if self.preface else ''
         prog_list = []
         import re

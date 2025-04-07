@@ -50,7 +50,19 @@ def _replace_with_evolved_function(
         function_to_evolve: str,
         function_to_run: str,
         evolved_function: code_manipulation.Function
-):
+) -> None:
+    """
+    Replace the old evolving function with the current best function.
+
+    CGY: This is needed since the whole process is going through
+         multiple iterations based on one file structure.
+
+    Args:
+        file_path:              the path to the original file
+        function_to_evolve:     name of the evolving function
+        function_to_run:        name of the running function
+        evolved_function:       the function after evolving
+    """
     with open(file_path, 'r') as f:
         code = f.read()
 
@@ -66,7 +78,18 @@ def _replace_with_evolved_function(
         f.write(program.get_decorated_program_str(function_to_evolve, function_to_run))
 
 
-def _file_backup(src: str):
+def _file_backup(src: str) -> str:
+    """
+    Backup (make a copy) the original file since the process will manipulate the raw file.
+
+    CGY: Backup before the real file manipulation.
+
+    Args:
+        src: path to the original file
+
+    Returns:
+        the path to the copied file
+    """
     import shutil
     dst = src.split('.')[0] + '_copy.py'
     shutil.copy(src, dst)
@@ -78,34 +101,40 @@ def main(
         inputs: Sequence[Any],
         config: config_lib.Config,
         max_sample_nums_per_stage: int | None,
-        max_stage_iter: int | None,
+        max_attempts_per_stage: int | None,
         class_config: config_lib.ClassConfig,
         **kwargs
 ):
     """Launches a FunSearch experiment.
-    RZ:
-    Args:
-        specification: the boilerplate code for the problem.
-        inputs       : the data instances for the problem (see 'bin_packing_utils.py').
-        config       : config file.
-        max_sample_nums: the maximum samples nums from LLM. 'None' refers to no stop.
-    """
 
-    spec_file_path = _file_backup(spec_file_path)
+    CGY:
+
+    Args:
+        spec_file_path:                 the path to the specification file
+        inputs:                         the data instances for the problem (see 'bin_packing_utils.py')
+        config:                         config file
+        max_sample_nums_per_stage:      the maximum samples nums from LLM. 'None' refers to no stop
+        max_attempts_per_stage:         the maximum attempts when score is lower than the baseline
+        class_config:                   class config file
+        kwargs:                         other parameters
+    """
+    spec_file_path = _file_backup(spec_file_path)  # CGY: backup before changing
 
     cur_stage_idx = 0
     cur_iter = 0
 
-    while cur_stage_idx < len(inputs) and cur_iter < max_stage_iter:
+    while cur_stage_idx < len(inputs):
 
         cur_iter += 1
 
+        # CGY: read specification from a Python file
         with open(spec_file_path, 'r') as f:
             specification = f.read()
 
-        function_to_evolve, function_to_run = _extract_function_names(specification)  # only function names
-        template = code_manipulation.text_to_program(specification)  # entire python file as string
+        function_to_evolve, function_to_run = _extract_function_names(specification)  # CGY: only function names
+        template = code_manipulation.text_to_program(specification)  # CGY: entire python file as string
 
+        # CGY: define the stage tracker
         st = stage_tracker.StageTracker(
             cur_stage=cur_stage_idx,
             max_sample_nums=max_sample_nums_per_stage,
@@ -113,6 +142,7 @@ def main(
             class_config=class_config
         )
 
+        # CGY: start the main process for evolving
         is_passed, evolved_func = st.main_process(
             function_to_evolve,
             function_to_run,
@@ -126,8 +156,16 @@ def main(
             print(evolved_func)
             cur_stage_idx += 1
 
+            cur_iter = 0
+
+            # CGY: replace the original evolve function with the latest one
             _replace_with_evolved_function(
                 spec_file_path, function_to_evolve, function_to_run, evolved_func
             )
         else:
+            cur_iter += 1
+            if cur_iter >= max_attempts_per_stage:
+                print(f"Reached max attempt limit, stop evolving......")
+                break
+
             print(f"Failed to pass Stage-{cur_stage_idx}, retrying......")
