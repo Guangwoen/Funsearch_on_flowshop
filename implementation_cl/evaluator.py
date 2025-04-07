@@ -133,7 +133,7 @@ def _calls_ancestor(program: str, function_to_evolve: str) -> bool:
     """Returns whether the generated function is calling an earlier version."""
     for name in code_manipulation.get_functions_called(program):
         # In `program` passed into this function the most recently generated
-        # function has already been renamed to `function_to_evolve` (wihout the
+        # function has already been renamed to `function_to_evolve` (without the
         # suffix). Therefore, any function call starting with `function_to_evolve_v`
         # is a call to an ancestor function.
         if name.startswith(f'{function_to_evolve}_v'):
@@ -185,8 +185,9 @@ class Evaluator:
             sample: str,
             island_id: int | None,
             version_generated: int | None,
+            cur_stage: int | None,
             **kwargs  # RZ: add this to do profile
-    ) -> None:
+    ) -> float | None:
         """Compiles the sample into a program and executes it on test inputs.
 
         Args:
@@ -197,10 +198,15 @@ class Evaluator:
         # RZ: 'new_function' refers to the evolved function ('def' statement + function body)
         # RZ: 'program' is the template code + new_function
         new_function, program = _sample_to_program(
-            sample, version_generated, self._template, self._function_to_evolve)
+            sample, version_generated, self._template, self._function_to_evolve
+        )
 
-        self._log(f"--- New Function Version {version_generated} ---")
-        self._log(f"Function Code:\n{new_function.body.strip()}")
+        if cur_stage is None:
+            self._log(f"--- New Function Version {version_generated} ---")
+            self._log(f"Function Code:\n{new_function.body.strip()}")
+        else:
+            self._log(f"--- Baseline Function ---")
+            self._log(f"Function Code:\n{new_function.body.strip()}")
 
         scores_per_test = {}
 
@@ -211,7 +217,11 @@ class Evaluator:
             # do not ignore this when implementing SandBox !!!
 
             test_output, runs_ok = self._sandbox.run(
-                program, self._function_to_run, self._function_to_evolve, self._inputs, current_input,
+                program,
+                self._function_to_run,
+                self._function_to_evolve,
+                self._inputs,
+                current_input,
                 self._timeout_seconds
             )
 
@@ -231,8 +241,14 @@ class Evaluator:
         # RZ: If 'score_per_test' is not empty, the score of the program will be recorded to the profiler by the 'register_program'.
         # This is because the register_program will do reduction for a given Function score.
         # If 'score_per_test' is empty, we record it to the profiler at once.
+
         if scores_per_test:
-            self._log(f"Registered program | Avg Score: {sum(scores_per_test.values()) / len(scores_per_test):.3f} | Time: {evaluate_time:.2f}s")
+            avg_score = sum(scores_per_test.values()) / len(scores_per_test)
+            if cur_stage is None:
+                self._log(f"Registered program | Avg Score: {avg_score:.3f} | Time: {evaluate_time:.2f}s")
+            else:
+                self._log(f"Stage-{cur_stage}-Baseline program | Avg Score: {avg_score:.3f}")
+
             self._database.register_program(
                 new_function,
                 island_id,
@@ -240,14 +256,16 @@ class Evaluator:
                 **kwargs,
                 evaluate_time=evaluate_time
             )
-        else:
-            self._log("No valid scores. Not registered.")
-            profiler: profile.Profiler = kwargs.get('profiler', None)
-            if profiler:
-                global_sample_nums = kwargs.get('global_sample_nums', None)
-                sample_time = kwargs.get('sample_time', None)
-                new_function.global_sample_nums = global_sample_nums
-                new_function.score = None
-                new_function.sample_time = sample_time
-                new_function.evaluate_time = evaluate_time
-                profiler.register_function(new_function)
+
+            return avg_score
+
+        self._log("No valid scores. Not registered.")
+        profiler: profile.Profiler = kwargs.get('profiler', None)
+        if profiler:
+            global_sample_nums = kwargs.get('global_sample_nums', None)
+            sample_time = kwargs.get('sample_time', None)
+            new_function.global_sample_nums = global_sample_nums
+            new_function.score = None
+            new_function.sample_time = sample_time
+            new_function.evaluate_time = evaluate_time
+            profiler.register_function(new_function)

@@ -108,12 +108,17 @@ class Sampler:
                         sample,
                         prompt.island_id,
                         prompt.version_generated,
+                        None,
                         **kwargs,
                         global_sample_nums=cur_global_sample_nums,
                         sample_time=sample_time
                     )
             except:
                 continue
+
+    @classmethod
+    def initialize_global_sample_nums(cls, num: int = 1):
+        cls._global_samples_nums = num
 
     def _get_global_sample_nums(self) -> int:
         return self.__class__._global_samples_nums

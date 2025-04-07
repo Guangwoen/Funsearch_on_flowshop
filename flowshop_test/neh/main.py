@@ -7,7 +7,7 @@ from evolved import evolved_neh
 
 def main(use_evolved=False):
 
-    filename = 'reeves1.txt'
+    filename = 'reeves13.txt'
     subdir = 'reeves'
     fs_data = load_datasets(f'/Users/cuiguangyuan/Documents/CityU/SemesterB/Artificial Intelligence/project/Funsearch_on_flowshop/data/{subdir}')[filename]
     fs_data = np.array(fs_data)
